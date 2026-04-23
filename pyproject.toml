@@ -1,0 +1,58 @@
+[project]
+name = "act"
+version = "0.0.1"
+description = "ACT: Action Chunking with Transformers (bimanual MuJoCo sim benchmark)"
+readme = "README.md"
+requires-python = ">=3.9,<3.10"
+authors = [
+    { name = "Tony Zhao" },
+]
+dependencies = [
+    "pyquaternion==0.9.9",
+    "pyyaml==6.0",
+    "rospkg==1.5.0",
+    "pexpect==4.8.0",
+    "mujoco==2.3.3",
+    "dm_control==1.0.9",
+    "opencv-python==4.7.0.72",
+    "matplotlib==3.7.1",
+    "einops==0.6.0",
+    "packaging==23.0",
+    "h5py==3.8.0",
+    "ipython==8.12.0",
+    "imageio[ffmpeg]>=2.31",
+    "policy-websocket @ git+https://github.com/YufengJin/policy_websocket.git",
+    "torch==2.0.0",
+    "torchvision==0.15.0",
+    "detr",
+]
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = [
+    "constants",
+    "sim_env",
+    "ee_sim_env",
+    "policy",
+    "utils",
+    "scripted_policy",
+    "record_sim_episodes",
+    "imitate_episodes",
+    "visualize_episodes",
+]
+
+[tool.uv.workspace]
+members = ["detr"]
+
+[tool.uv.sources]
+detr = { workspace = true }
+torch = { index = "pytorch-cu118" }
+torchvision = { index = "pytorch-cu118" }
+
+[[tool.uv.index]]
+name = "pytorch-cu118"
+url = "https://download.pytorch.org/whl/cu118"
+explicit = true

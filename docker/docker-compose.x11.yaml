@@ -1,0 +1,33 @@
+services:
+  act:
+    container_name: act_container
+    image: ${IMAGE:-act:latest}
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    network_mode: host
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ${HOME}/.Xauthority:/root/.Xauthority:ro
+      - ../:/workspace
+      - ${HOME}/.cache/huggingface:/root/.cache/huggingface
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
+    environment:
+      - DISPLAY=${DISPLAY}
+      - XAUTHORITY=/root/.Xauthority
+      - GPU=${GPU:-all}
+      - NVIDIA_VISIBLE_DEVICES=${GPU:-all}
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      - MUJOCO_GL=glfw
+    ulimits:
+      memlock: -1
+    command: tail -f /dev/null
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

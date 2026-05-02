@@ -1,0 +1,70 @@
+{
+  "benchmark_name": "act",
+  "schema_version": 1,
+  "captured_at": "2026-05-02T06:18:00+00:00",
+  "captured_from": {
+    "repo_path": "/home/yjin/repos/act",
+    "env_id": "sim_transfer_cube_scripted",
+    "make_expr": "make_sim_env('sim_transfer_cube_scripted')",
+    "category": "IL"
+  },
+  "obs_spec": {
+    "qpos": {
+      "dtype": "float64",
+      "shape": [14],
+      "kind": "proprio_joint",
+      "notes": "6 arm joints + 1 normalized gripper each arm (left[7] + right[7])"
+    },
+    "qvel": {
+      "dtype": "float64",
+      "shape": [14],
+      "kind": "proprio_velocity"
+    },
+    "env_state": {
+      "dtype": "float64",
+      "shape": [7],
+      "kind": "proprio_other",
+      "notes": "cube/peg pose [xyz + quat wxyz]; sim_insertion has 14 (two objects)"
+    },
+    "images.top": {
+      "dtype": "uint8",
+      "shape": [480, 640, 3],
+      "kind": "image_primary"
+    },
+    "images.angle": {
+      "dtype": "uint8",
+      "shape": [480, 640, 3],
+      "kind": "image_other"
+    },
+    "images.vis": {
+      "dtype": "uint8",
+      "shape": [480, 640, 3],
+      "kind": "image_other"
+    }
+  },
+  "action_spec": {
+    "shape": [14],
+    "dtype": "float64",
+    "low": [-3.14158, -1.85005, -1.76278, -3.14158, -1.8675, -3.14158, 0.021, -3.14158, -1.85005, -1.76278, -3.14158, -1.8675, -3.14158, 0.021],
+    "high": [3.14158, 1.25664, 1.6057, 3.14158, 2.23402, 3.14158, 0.057, 3.14158, 1.25664, 1.6057, 3.14158, 2.23402, 3.14158, 0.057],
+    "controller": "ALOHA bimanual ViperX position control (14-dim: 7 per arm × 2)",
+    "gripper_convention": {
+      "open": 0.057,
+      "close": 0.021,
+      "binary": false,
+      "index": 6
+    },
+    "components": [
+      "left_q1", "left_q2", "left_q3", "left_q4", "left_q5", "left_q6", "left_gripper",
+      "right_q1", "right_q2", "right_q3", "right_q4", "right_q5", "right_q6", "right_gripper"
+    ],
+    "notes": "MuJoCo actuator count is 16 (each finger has mirrored pos/neg constrained actuators), but the actual control surface — the API users + ALOHA-trained policies see — is 14-dim (6 joints + 1 gripper per arm × 2 arms). `sim_env.step(action)` accepts (14,) and internally mirrors finger to actuator pairs."
+  },
+  "task_description_source": "<NONE>",
+  "step_signature": "dm_env.TimeStep",
+  "smoke_test_passed": true,
+  "dropped_task_specific_keys": [
+    "<root>"
+  ],
+  "extra_notes": "ACT (Action Chunking Transformer) bimanual ALOHA. Env action_spec = 16-D mujoco actuator inputs (6 joints + 2 finger widths per arm). Proprio qpos = 14-D (6 joints + 1 normalized gripper each arm). The policy_websocket server in tests/test_random_policy_server.py advertises action_dim=14 (matches qpos shape); scripts/run_demo.py and scripts/run_eval.py pad 14→16 before env.step. Reward is dm_env sparse stage indicator (0..env_max_reward) — see env._task; sim_transfer_cube max=4, sim_insertion max=4. [gripper indices] bimanual ViperX: index=6 is left finger pos (primary); paired antagonistic pair at idx=7. Right arm: idx=14 primary, idx=15 antagonist. Spec is hand-curated (auto-introspection of dm_control envs returns the 16-D raw actuator surface, not the 14-D policy interface). Cross-task verified manually against sim_insertion_scripted: same action_spec and obs_spec layout (env_state shape changes from 7 to 14 for two objects, treated as task-specific by spec contract)."
+}

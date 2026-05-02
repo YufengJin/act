@@ -1,30 +1,55 @@
+# Headless mode: no GUI, for training / serving / testing.
+#
+# Usage:
+#   docker compose -f docker/docker-compose.headless.yaml up --build
+#   docker exec -it act-headless bash
+
 services:
   act:
-    container_name: act_container
-    image: ${IMAGE:-yufengjin/act:latest}
     build:
       context: ..
       dockerfile: docker/Dockerfile
-    network_mode: host
-    volumes:
-      - ../:/workspace
-      - ${HOME}/.cache/huggingface:/root/.cache/huggingface
-    working_dir: /workspace
-    stdin_open: true
+    # Default image tag for local from-scratch builds. Override with `IMAGE=...`
+    # to point at a registry tag (e.g. `IMAGE=<hub-user>/act:latest docker compose up`).
+    # `docker compose build` will tag the build output with this local tag.
+    image: ${IMAGE:-act:local}
+    container_name: act-headless
+    restart: unless-stopped
     tty: true
+    stdin_open: true
+
     environment:
-      - GPU=${GPU:-all}
-      - NVIDIA_VISIBLE_DEVICES=${GPU:-all}
+      - PYTHONUNBUFFERED=1
+      - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=all
+      # benchmark-generator: dm_control + MuJoCo headless rendering (OSMesa software stack)
       - MUJOCO_GL=osmesa
       - PYOPENGL_PLATFORM=osmesa
-    ulimits:
-      memlock: -1
+      # <<<EXTENSION_ENV_INSERT_ABOVE>>> — sub-skills insert env vars above this line
+
+    network_mode: host
+    ipc: host
+    pid: host
+
+    volumes:
+      - ..:/workspace/act
+      - ${HOME}/.cache/huggingface:/root/.cache/huggingface
+      # <<<EXTENSION_VOLUME_INSERT_ABOVE>>> — sub-skills insert mounts above this line
+      # Add dataset mounts:
+      # - /path/to/datasets:/workspace/datasets:ro
+
     command: tail -f /dev/null
+
     deploy:
       resources:
         reservations:
           devices:
             - driver: nvidia
               count: all
-              capabilities: [gpu]
+              capabilities: [gpu, compute, utility]
+
+    ulimits:
+      nofile: { soft: 65536, hard: 65536 }
+      nproc: 65536
+      memlock: -1
+      stack: 67108864

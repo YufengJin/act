@@ -1,0 +1,33 @@
+{
+  "classification": "benchmark",
+  "classification_confidence": "high",
+  "classification_reason": "README states 'This repo contains the implementation of ACT, together with 2 simulated environments' and benchmark.md explicitly labels it a MuJoCo simulation benchmark with named tasks (sim_transfer_cube_scripted, sim_insertion_scripted) and a task table.",
+  "cuda_source": "torch-pin",
+  "cuda_tag_source": "hub-api",
+  "cuda_variant": "runtime",
+  "cuda_version": "11.8",
+  "cudnn_version": "cudnn8",
+  "has_flash_attn": false,
+  "has_pyproject": true,
+  "has_requirements": false,
+  "has_setup_py": false,
+  "has_uv_lock": true,
+  "markdown_files": [
+    "README.md",
+    "benchmark.md",
+    "detr/README.md",
+    "docker/README.md",
+    "history.md",
+    "install.md"
+  ],
+  "needs_render_libs": true,
+  "needs_setuptools_pin": false,
+  "project_name": "act",
+  "python_version": "3.9",
+  "quirks": [
+    "needs_render_libs"
+  ],
+  "readme_path": "README.md",
+  "torch_cuda_detected": true,
+  "ubuntu_version": "22.04"
+}

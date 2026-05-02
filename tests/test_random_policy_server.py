@@ -4,11 +4,11 @@ Test policy server for act — returns random 14-D bimanual actions via WebSocke
 
 Usage
 -----
-    python tests/test_random_policy_server.py --port 8000
+    python tests/test_random_policy_server.py --port 8765
 
 Then from the client:
     python scripts/run_eval.py --task_name sim_transfer_cube_scripted \\
-        --policy_server_addr localhost:8000 --num_rollouts 2
+        --policy_server_addr localhost:8765 --n-episodes 2
 
 Action layout (14-D):
     [ left_arm_qpos(6), left_gripper(1),
@@ -68,7 +68,7 @@ class RandomPolicy(BasePolicy):
 def main():
     parser = argparse.ArgumentParser(description="act test policy server (random actions)")
     parser.add_argument("--host", default="0.0.0.0")
-    parser.add_argument("--port", type=int, default=8000)
+    parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--noise_scale", type=float, default=0.02,
                         help="Uniform noise magnitude on arm qpos around START pose")
     args = parser.parse_args()

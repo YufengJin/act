@@ -1,0 +1,26 @@
+{
+  "primary_install_strategy": "uv-sync-frozen",
+  "system_apt_packages": ["libegl1", "libosmesa6", "libgl1", "libglib2.0-0", "ffmpeg", "lsof", "psmisc", "tmux", "vim"],
+  "third_party_clones": [],
+  "installation_steps": [
+    {
+      "kind": "uv_sync",
+      "args": ["--frozen", "--no-install-project", "--no-install-workspace"]
+    }
+  ],
+  "post_install_hooks": [],
+  "runtime_mounts": [],
+  "runtime_env_vars": [],
+  "evidence": {
+    "readme_quotes": [
+      "cd act/detr && pip install -e .",
+      "conda create -n aloha python=3.8.10\nconda activate aloha\npip install torchvision\npip install torch\npip install mujoco==2.3.7\npip install dm_control==1.0.14"
+    ],
+    "ambiguities": [
+      "README uses conda + pip install steps; translated to uv sync --frozen with pyproject.toml/uv.lock which already encodes all pins including torch==2.0.0+cu118, mujoco==2.3.3, dm_control==1.0.9 and the detr workspace member.",
+      "needs_render_libs quirk: libegl1/libosmesa6 already present in prior Dockerfile; kept.",
+      "README mentions python=3.8.10 but pyproject.toml requires-python = >=3.9,<3.10; using 3.9 per pyproject.toml.",
+      "detr is a uv workspace member installed via uv sync --frozen --no-install-project --no-install-workspace; editable install of both act and detr happens in entrypoint.sh at container start."
+    ]
+  }
+}

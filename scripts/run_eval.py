@@ -29,10 +29,10 @@ Action layout (14-D, absolute joint positions + normalized gripper):
 Example
 -------
     # Terminal A — start a policy server (random here; swap for trained in prod)
-    python tests/test_random_policy_server.py --port 8000
+    python tests/test_random_policy_server.py --port 8765
 
     # Terminal B — run eval against it
-    python scripts/run_eval.py --policy_server_addr localhost:8000 \\
+    python scripts/run_eval.py --policy_server_addr localhost:8765 \\
         --task_name sim_transfer_cube_scripted --n-episodes 10 --max-steps 400
 
     # Grep the resulting log for failure modes
@@ -95,13 +95,20 @@ def extract_top_frame(obs) -> Optional[np.ndarray]:
     return None
 
 
-def build_observation(ts, task_name: str) -> dict:
+def build_observation(ts, task_name: str, phase: str = "step") -> dict:
     obs = ts.observation
     return {
         "qpos": np.asarray(obs["qpos"], dtype=np.float32),
         "qvel": np.asarray(obs.get("qvel", []), dtype=np.float32),
         "images": {n: np.asarray(img) for n, img in obs.get("images", {}).items()},
         "task_description": task_name,
+        "__meta__": {
+            "v": 1,
+            "benchmark": "act",
+            "task": str(task_name),
+            "task_description": task_name,
+            "phase": phase,
+        },
     }
 
 

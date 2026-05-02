@@ -1,40 +1,36 @@
-#!/usr/bin/env bash
-# Entrypoint for act container.
-# - Detects the act repo under /workspace (direct or nested mount).
-# - Installs act + detr editable from the mounted workspace (uv workspace).
+#!/bin/bash
 set -e
 
-export UV_PROJECT_ENVIRONMENT="${UV_PROJECT_ENVIRONMENT:-/opt/venv}"
+# Sync sentinel for setup.sh (IsaacGym workflow). Harmless when no setup.sh
+# is reading it — just an empty file in /tmp that gets touched at end.
+rm -f /tmp/entrypoint_done
 
-cd /workspace
+export PATH="/opt/venv/bin:/usr/local/bin:${PATH:-/usr/bin:/bin}"
+export VIRTUAL_ENV="/opt/venv"
 
-# ---------------------------------------------------------
-# Project root detection
-#   direct mount:  /workspace/pyproject.toml (act repo root)
-#   nested mount:  /workspace/act/pyproject.toml
-# ---------------------------------------------------------
-ACT_ROOT=""
-if [ -f /workspace/pyproject.toml ] && [ -d /workspace/detr ]; then
-  ACT_ROOT="/workspace"
-elif [ -f /workspace/act/pyproject.toml ] && [ -d /workspace/act/detr ]; then
-  ACT_ROOT="/workspace/act"
+# ── 1. Editable install (project mounted at /workspace/act) ─────
+# Both branches resolve install_requires by default. If you need --no-deps
+# (e.g. to avoid uv re-resolving heavy science stack), add a `post_install_hooks`
+# entry to install_plan.json that re-runs the install with --no-deps.
+if [ -f "/workspace/act/pyproject.toml" ]; then
+    echo ">> Installing editable package (pyproject.toml)..."
+    cd /workspace/act && uv pip install -e . --index-strategy unsafe-best-match && cd - > /dev/null
+elif [ -f "/workspace/act/setup.py" ]; then
+    echo ">> Installing editable package (setup.py)..."
+    cd /workspace/act && uv pip install -e . --index-strategy unsafe-best-match && cd - > /dev/null
 fi
 
-if [ -n "${ACT_ROOT}" ]; then
-  echo ">> Installing act + detr (editable, uv workspace) from ${ACT_ROOT} ..."
-  # --inexact: do not purge pre-installed dependency layer from the image.
-  # Without it, `uv sync` inside the mount would uninstall the pre-synced
-  # deps because they are not present in any .lock on the host venv path.
-  (cd "${ACT_ROOT}" && uv sync --frozen --inexact)
-else
-  echo "WARN: could not locate act repo under /workspace; skipping editable install."
-fi
+# ── 2. Post-install hooks from InstallationPlan ──────────────────────────────
+# Rendered by render_base.py from <repo>/.nautilus/install_plan.json's
+# `post_install_hooks`. `when=first_run` entries are wrapped in a sentinel
+# guard; `when=every_run` entries fire on every container start.
 
-# ---------------------------------------------------------
-# Exec forwarded command (venv is already on PATH via Dockerfile ENV).
-# ---------------------------------------------------------
-if [ $# -eq 0 ]; then
-  exec bash
-else
-  exec "$@"
-fi
+
+# 
+# Slot for downstream sub-skills to inject project-specific steps.
+
+# <<<EXTENSION_ENTRYPOINT_INSERT_ABOVE>>> — sub-skills insert pre-exec hooks above this line
+
+echo ">> Ready."
+touch /tmp/entrypoint_done
+exec "$@"

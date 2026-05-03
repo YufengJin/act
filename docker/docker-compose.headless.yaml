@@ -22,7 +22,6 @@ services:
       - PYTHONUNBUFFERED=1
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=all
-      # benchmark-generator: dm_control + MuJoCo headless rendering (OSMesa software stack)
       - MUJOCO_GL=osmesa
       - PYOPENGL_PLATFORM=osmesa
       # <<<EXTENSION_ENV_INSERT_ABOVE>>> — sub-skills insert env vars above this line

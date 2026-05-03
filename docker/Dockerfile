@@ -72,14 +72,8 @@ ENV VIRTUAL_ENV="/opt/venv"
 # -----------------------------------------------------------------------------
 WORKDIR /build
 COPY pyproject.toml uv.lock ./
-RUN uv sync --frozen --no-install-project --no-install-workspace
-
-# Re-install torch explicitly to ensure version.py and all wheel files are present.
-# uv may omit small generated files (e.g. torch/version.py) from large wheels on some
-# uv versions; pip install --no-deps is the reliable fallback for completeness.
-RUN uv pip install --index-url https://download.pytorch.org/whl/cu118 \
-    --no-deps \
-    torch==2.0.0+cu118 torchvision==0.15.0+cu118
+COPY detr/pyproject.toml ./detr/pyproject.toml
+RUN uv sync --frozen --no-install-project --no-install-workspace --active --index-strategy unsafe-best-match
 
 # 
 # Slot for downstream sub-skills (benchmark / policy generators) to inject

@@ -4,13 +4,28 @@
   "third_party_clones": [],
   "installation_steps": [
     {
+      "kind": "apt_install",
+      "pkgs": ["libegl1", "libosmesa6", "libgl1", "libglib2.0-0", "ffmpeg", "lsof", "psmisc", "tmux", "vim"]
+    },
+    {
       "kind": "uv_sync",
       "args": ["--frozen", "--no-install-project", "--no-install-workspace"]
     }
   ],
   "post_install_hooks": [],
   "runtime_mounts": [],
-  "runtime_env_vars": [],
+  "runtime_env_vars": [
+    {
+      "key": "MUJOCO_GL",
+      "value": "osmesa",
+      "evidence": "MuJoCo headless rendering: OSMesa for offscreen rendering in headless container (dm_control/mujoco requirement)"
+    },
+    {
+      "key": "PYOPENGL_PLATFORM",
+      "value": "osmesa",
+      "evidence": "dm_control requires PYOPENGL_PLATFORM=osmesa for headless offscreen rendering"
+    }
+  ],
   "evidence": {
     "readme_quotes": [
       "cd act/detr && pip install -e .",
@@ -18,9 +33,9 @@
     ],
     "ambiguities": [
       "README uses conda + pip install steps; translated to uv sync --frozen with pyproject.toml/uv.lock which already encodes all pins including torch==2.0.0+cu118, mujoco==2.3.3, dm_control==1.0.9 and the detr workspace member.",
-      "needs_render_libs quirk: libegl1/libosmesa6 already present in prior Dockerfile; kept.",
+      "needs_render_libs quirk (libegl1/libosmesa6): auto-injected apt_install step; MUJOCO_GL=osmesa + PYOPENGL_PLATFORM=osmesa added as runtime_env_vars for headless rendering.",
       "README mentions python=3.8.10 but pyproject.toml requires-python = >=3.9,<3.10; using 3.9 per pyproject.toml.",
-      "detr is a uv workspace member installed via uv sync --frozen --no-install-project --no-install-workspace; editable install of both act and detr happens in entrypoint.sh at container start."
+      "detr is a uv workspace member; uv sync --frozen --no-install-project --no-install-workspace installs deps; editable install of act+detr happens in entrypoint.sh at container start."
     ]
   }
 }

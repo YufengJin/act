@@ -14,6 +14,11 @@ export VIRTUAL_ENV="/opt/venv"
 # entry to install_plan.json that re-runs the install with --no-deps.
 if [ -f "/workspace/act/pyproject.toml" ]; then
     echo ">> Installing editable package (pyproject.toml)..."
+    # Install detr workspace member first (act depends on it)
+    if [ -f "/workspace/act/detr/pyproject.toml" ]; then
+        echo ">> Installing detr workspace member..."
+        cd /workspace/act && uv pip install -e detr --index-strategy unsafe-best-match && cd - > /dev/null
+    fi
     cd /workspace/act && uv pip install -e . --index-strategy unsafe-best-match && cd - > /dev/null
 elif [ -f "/workspace/act/setup.py" ]; then
     echo ">> Installing editable package (setup.py)..."

@@ -22,9 +22,12 @@ docker compose -f docker/docker-compose.headless.yaml build
 
 Base image: `nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04`
 Python: `3.9` (managed by `uv` in `/opt/venv`)
-Install strategy: `uv sync --frozen --no-install-project --no-install-workspace`
+Install strategy: `uv sync --frozen --no-install-project --no-install-workspace --active`
 
-Note: the Dockerfile includes an explicit `uv pip install --no-deps torch==2.0.0+cu118 torchvision==0.15.0+cu118` step after `uv sync` to ensure `torch/version.py` and all wheel files are present (uv may omit small generated files from large PyTorch wheels on some versions).
+Key notes:
+- `--active` flag ensures packages install into `/opt/venv` (not a project-local `.venv`)
+- `detr` is a uv workspace member; its `pyproject.toml` is COPY-ed at build time
+- Editable install of both `act` and `detr` runs in `entrypoint.sh` on container start
 
 ## Bring the container up
 
@@ -52,8 +55,17 @@ python -c "import sim_env; print(sim_env.__file__)"
 
 The last line must resolve under `/workspace/act/` — this proves that the mounted source is the one the interpreter imports (editable install succeeded). `act` does not expose a top-level package; the canonical proof-of-import is `import sim_env` (the bimanual MuJoCo env factory module).
 
+## Rendering environment variables
+
+The headless compose file sets:
+- `MUJOCO_GL=osmesa` — MuJoCo offscreen rendering via OSMesa
+- `PYOPENGL_PLATFORM=osmesa` — dm_control headless rendering
+
 ## Stop / clean up
 
 ```bash
 docker compose -f docker/docker-compose.headless.yaml down
 ```
+
+---
+Generated: 2026-05-03T09:42:47+02:00 | commit: b4565f9
